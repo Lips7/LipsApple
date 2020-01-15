@@ -26,4 +26,5 @@ class Solution:
                 pre = pre.next
                 head = head.next
         return dummy.next
+
 # @lc code=end
