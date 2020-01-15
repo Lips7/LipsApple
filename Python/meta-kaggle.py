@@ -462,9 +462,9 @@ fig = px.scatter(
         '0': 'gold',
         '0.5': 'silver',
         '1': 'brown'
-    }
+    },
     hover_name='Medal Name',
-    size='Size'
+    size='Size',
     animation_frame='Year',
     title='Number of Winning Teams vs. Team size - time variation (years) - Featured competitions',
     log_y=True,
@@ -525,9 +525,9 @@ fig = px.scatter(
         '0': 'gold',
         '0.5': 'silver',
         '1': 'brown'
-    }
+    },
     hover_name='Medal Name',
-    size='Size'
+    size='Size',
     animation_frame='Year',
     title='Number of Winning Teams vs. Team size - time variation (years) - Research competitions',
     log_y=True,
@@ -589,7 +589,8 @@ fig.show()
 # ## A explanation of the perception
 # Will show the number of new users registered every year.
 # %%
-users_df = pd.read_csv('../../Dataset/meta-kaggle/Users.csv')  # type:pd.DataFrame
+users_df = pd.read_csv(
+    '../../Dataset/meta-kaggle/Users.csv')  # type:pd.DataFrame
 # %%
 users_df.head()
 # %%
