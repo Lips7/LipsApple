@@ -16,10 +16,6 @@
 \SetupKeyvalOptions{family=ELEGANT, prefix=ELEGANT@, setkeys=\kvsetkeys}
 \newcommand{\ekv}[1]{\kvsetkeys{ELEGANT}{#1}}
 
-\DeclareStringOption[en]{lang}
-\DeclareVoidOption{cn}{\ekv{lang = cn}}
-\DeclareVoidOption{en}{\ekv{lang = en}}
-
 \DeclareStringOption[numbers]{cite}
 \DeclareVoidOption{numbers}{\ekv{cite=numbers}}
 \DeclareVoidOption{authoryear}{\ekv{cite=authoryear}}
