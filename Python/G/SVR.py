@@ -6,15 +6,15 @@
 # %%
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.figure_factory as ff
 import plotly.express as px
+import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.model_selection import (GridSearchCV, KFold,
+                                     train_test_split)
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
@@ -35,15 +35,14 @@ offset_dict = {
 }
 
 
-def get_data(frequency: str, T: int):
+def get_data(frequency: str, T: str) -> None:
     data_path = os.path.join(path, frequency)
-    data_1 = data_2 = pd.read_csv('Data/test.csv')  # 空文件，迭代用
+    data_1 = pd.read_csv('Data/test.csv')  # 空文件，迭代用
     freq = freq_dict[frequency]
     offset = offset_dict[frequency]
 
     for file in os.listdir(data_path):
-        df = pd.read_csv(os.path.join(data_path, file),
-                         index_col='index', parse_dates=True)  # 以时间序列为索引
+        df = pd.read_csv(os.path.join(data_path, file), index_col='index', parse_dates=True)  # 以时间序列为索引
         df.dropna(inplace=True)  # 去除空值
 
         up = df.query('open<close')  # 阳线
@@ -53,48 +52,30 @@ def get_data(frequency: str, T: int):
         new = up.join(down, how='inner', lsuffix='_up', rsuffix='_down')  # 合并
         new.query('vol_down>vol_up', inplace=True)  # vol(2)>vol(1)
 
-        first = new.query('close_down>close_up')  # close(2)>close(1)
-        first_low_mean = pd.Series(index=first.index, name='T_mean')
+        # close(2)>close(1)
+        first = new.query('close_down>close_up')
+        low_mean = pd.Series(index=first.index, name='T_mean')
         for start in first.index:
-            period_1 = pd.date_range(
-                start=start + offset, periods=T, freq=freq)
+            period = pd.date_range(start=start + offset, periods=int(T), freq=freq)
             # 时间范围可能无效
             try:
-                first_low_mean[start] = df.loc[period_1].low.mean()
+                low_mean[start] = df.loc[period].low.mean()
             except:
                 first.drop(index=start, inplace=True)  # 清除无效行
                 continue
-        first_low_mean = pd.Series(
-            first_low_mean, index=first.index, name='T_mean')
-        piece_1 = pd.concat([first, first_low_mean], axis=1,
-                            join='inner').reset_index(drop=True)  # 去除时间索引
-        data_1 = pd.concat([data_1, piece_1])
+        low_mean = pd.Series(low_mean, index=first.index, name='T_mean')
+        piece = pd.concat([first, low_mean], axis=1, join='inner').reset_index(drop=True)  # 去除时间索引
+        data_1 = pd.concat([data_1, piece])
 
-        # close(2)>close(1) & low(2)<low(1)
-        second = new.query('close_down>close_up & low_down<low_up')
-        second_low_mean = pd.Series(index=second.index, name='T_mean')
-        for start in second.index:
-            period_2 = pd.date_range(
-                start=start + offset, periods=T, freq=freq)
-            try:
-                second_low_mean[start] = df.loc[period_2].low.mean()
-            except:
-                second.drop(index=start, inplace=True)  # 清除无效行
-                continue
-        second_low_mean = pd.Series(
-            second_low_mean, index=second.index, name='T_mean')
-        piece_2 = pd.concat([second, second_low_mean], axis=1,
-                            join='inner').reset_index(drop=True)  # 去除时间索引
-        data_2 = pd.concat([data_2, piece_2])
+    # close(2)>close(1) & low(2)<low(1)
+    data_2 = data_1.query('low_down<low_up')
 
-    data_1.to_csv(os.path.join('Data', 'T='+str(T),
-                               frequency+'_1.csv'), index=False)
-    data_2.to_csv(os.path.join('Data', 'T='+str(T),
-                               frequency+'_2.csv'), index=False)
+    data_1.to_csv(os.path.join('Data', 'T=' + T, frequency + '_1.csv'), index=False)
+    data_2.to_csv(os.path.join('Data', 'T=' + T, frequency + '_2.csv'), index=False)
 
 
 # %%
-for T in np.arange(3, 16):
+for T in np.arange(2, 16).astype(np.str):
     for frequency in ['day', 'week']:  # month数据量太少，无意义
         get_data(frequency, T)
 
@@ -103,53 +84,76 @@ for T in np.arange(3, 16):
 
 # %%
 path = 'Data/'
-T = 15
 
 # %%
-def del_outliers(df: pd.DataFrame):
-    return df[~ ((df['T_mean'] - df['T_mean'].mean()).abs() > (3 * df['T_mean'].std()))]
+
+
+def del_outliers(df: pd.DataFrame) -> pd.DataFrame:
+    q1 = df['T_mean'].quantile(0.25)
+    q3 = df['T_mean'].quantile(0.75)
+    iqr = q3 - q1
+    low = q1 - 1.5 * iqr
+    high = q3 + 1.5 * iqr
+    return df[(df['T_mean'] > low) & (df['T_mean'] < high)]
+
+# %%
+
+
+def training_with_all(frequency: str, state: str, T_range: np.ndarray, param: dict) -> pd.DataFrame:
+    result = pd.DataFrame(columns=['MSE', 'param'], index=['T=' + s for s in T_range])
+
+    print(frequency, state, ' begin.')
+
+    for T in T_range:
+        data_path = os.path.join(path, 'T=' + T, frequency + '_' + state + '.csv')
+        df = pd.read_csv(data_path)
+
+        new = del_outliers(df)
+
+        X = new.drop(columns='T_mean')
+        y = new['T_mean']
+
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        std_scaler = StandardScaler()
+        X_train = std_scaler.fit_transform(X_train)
+        X_test = std_scaler.transform(X_test)
+
+        cv = KFold(n_splits=5, random_state=42)
+        gridcv = GridSearchCV(SVR(kernel='rbf'), param_grid=param, scoring='neg_mean_squared_error', cv=cv)
+        gridcv.fit(X_train, y_train)
+
+        y_pred = gridcv.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        result['MSE']['T=' + T] = mse
+        result['param']['T=' + T] = gridcv.best_params_
+        print('T=' + T + ': complete.', 'mse=', mse, ', param=', gridcv.best_params_)
+
+    print(frequency, ' ', state, ' complete.')
+
+    return result
+
+
+# %%
+T_range = np.arange(2, 16).astype(np.str)
+param = {
+    'gamma': np.logspace(-4, 0, 5),
+    'C': np.logspace(0, 4, 5)
+}
+for frequency in ['day', 'week']:
+    for state in ['1', '2']:
+        result = training_with_all(frequency=frequency, state=state, T_range=T_range, param=param)
+        result.to_csv('result_' + frequency + '_' + state + '.csv', index_label='T')
 
 # %% [markdown]
-# ### Day
-
+# ### 测试
 # %%
-day_2 = pd.read_csv(os.path.join(path, 'T='+str(T), 'day_2.csv')
-                    )
-day_2 = del_outliers(day_2)
-day_2.describe()
+T_range = np.arange(2, 16).astype(np.str)
+param = {
+    'gamma': np.logspace(-4, -1, 10),
+    'C': np.logspace(1, 4, 10)
+}
+test = training_with_all(frequency='week', state='1', T_range=T_range, param=param)
+test.to_csv('result_week_1.csv', index_label='T')
 
-# %%
-X = day_2.drop('T_mean', axis=1)
-y = day_2['T_mean']
-
-# %%
-std_scaler = StandardScaler()
-X = std_scaler.fit_transform(X)
-
-# %%
-X_train, y_train, X_test, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42)
-
-# %%
-param_grid = [
-    {
-        'kernel': ['rbf'],
-        'gamma': np.logspace(-6, 3, 10),
-        'C': np.logspace(-2, 7, 10)
-    },
-    {
-        'kernel': ['poly'],
-        'degree': [3, 4, 5, 6],
-        'gamma': np.logspace(-6, 3, 10),
-        'C': np.logspace(-2, 7, 10)
-    }
-]
-grid = GridSearchCV(SVR(), param_grid=param_grid,
-                    scoring='neg_mean_squared_error', n_jobs=-1, refit=True, cv=5)
-grid.fit(X_train, y_train)
-
-# %%
-grid.best_params_, grid.best_score_
-
-
-# %%
+# %% [markdown]
+# ## 结论
