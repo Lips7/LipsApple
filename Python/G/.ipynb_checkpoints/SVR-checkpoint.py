@@ -100,7 +100,7 @@ def del_outliers(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def training_with_all(state: str, T_range: np.ndarray, param: dict) -> pd.DataFrame:
-    result = pd.DataFrame(columns=['mse', 'gamma', 'C'], index=T_range)
+    result = pd.DataFrame(columns=['mse', 'param'], index=T_range)
 
     print(state, ' begin.')
 
@@ -124,9 +124,8 @@ def training_with_all(state: str, T_range: np.ndarray, param: dict) -> pd.DataFr
 
         y_pred = randomcv.predict(X_test)
         mse = mean_squared_error(y_test, y_pred)
-        result['mse'][T] = mse
-        result['gamma'][T] = randomcv.best_estimator_.gamma
-        result['C'][T] = randomcv.best_estimator_.C
+        result['MSE'][T] = mse
+        result['param'][T] = randomcv.best_params_
         print('T=' + T + ': complete.', 'mse=', mse, ', param=', randomcv.best_params_)
 
     print(state, ' complete.')
@@ -152,15 +151,37 @@ param = {
     'gamma': np.logspace(-4, -1, 4),
     'C': np.logspace(1, 4, 4)
 }
-test = training_with_all(state='week_2', T_range=T_range, param=param)
-test.to_csv('result_week_2.csv', index_label='T')
+test = training_with_all(state='day_1', T_range=T_range, param=param)
+test.to_csv('result_' + state + '.csv', index_label='T')
 
 # %% [markdown]
 # ## 结论
 
 # %% [markdown]
-# ### 图表
+# ### 重置数据
 
+# %%
+
+
+def reset_data(state: str) -> None:
+    df = pd.read_csv('result_' + state + '.csv', index_col='T')  # type:pd.DataFrame
+    df = df.values.tolist()
+    for i in np.arange(14):
+        tmp = eval(df[i][1])
+        df[i].pop()
+        df[i] += [tmp['gamma'], tmp['C']]
+    df = pd.DataFrame(df, index=np.arange(2, 16), columns=['mse', 'gamma', 'C'])
+    df.to_csv('result_' + state + '.csv', index_label='T')
+
+
+# %%
+for state in ['day_1', 'day_2', 'week_1', 'week_2']:
+    reset_data(state)
+
+    
+# %% [markdown]
+# ### 图表
+    
 # %%
 day_1 = pd.read_csv('result_day_1.csv', index_col='T')
 day_2 = pd.read_csv('result_day_2.csv', index_col='T')
@@ -172,8 +193,14 @@ fig = make_subplots(
     rows=2,
     cols=2,
     specs=[
-        [{'type': 'scene'}, {'type': 'scene'}],
-        [{'type': 'scene'}, {'type': 'scene'}]
+        [
+            {'type': 'scene'},
+            {'type': 'scene'}
+        ],
+        [
+            {'type': 'scene'},
+            {'type': 'scene'}
+        ]
     ],
     subplot_titles=['day_1', 'day_2', 'week_1', 'week_2']
 )
@@ -183,34 +210,60 @@ fig.add_traces(
         y=df['gamma'],
         z=df['C'],
         mode='markers',
-        marker_size=df['mse'] * 10,
-        name=name,
-        text=df['mse'],
-        hovertemplate='T=%{x}<br>gamma=%{y}<br>C=%{z}<br>mse=%{text}',
-    ) for df, name in [(day_1, 'day_1'), (day_2, 'day_2'), (week_1, 'week_1'), (week_2, 'week_2')]],
+        marker=dict(
+            size=day_1['mse']*10
+        )
+    ) for df in [day_1, day_2, week_1, week_2]],
     rows=[1, 1, 2, 2],
     cols=[1, 2, 1, 2]
 )
-scene_dict = dict(
-    xaxis_title='T',
-    yaxis=dict(
-        type='log',
-        title='gamma',
-        tickvals=np.logspace(-4, -1, 4)
-    ),
-    zaxis=dict(
-        type='log',
-        title='C',
-        tickvals=np.logspace(1, 4, 4)
-    ),
-)
 fig.update_layout(
-    scene=scene_dict,
-    scene2=scene_dict,
-    scene3=scene_dict,
-    scene4=scene_dict,
-    showlegend=False,
-    width=1000,
-    height=1000
+    scene=dict(
+        xaxis_title='T',
+        yaxis=dict(
+            type='log',
+            title='gamma'
+        ),
+        zaxis=dict(
+            type='log',
+            title='C'
+        ),
+    ),
+    scene2=dict(
+        xaxis_title='T',
+        yaxis=dict(
+            type='log',
+            title='gamma'
+        ),
+        zaxis=dict(
+            type='log',
+            title='C'
+        ),
+    ),
+    scene3=dict(
+        xaxis_title='T',
+        yaxis=dict(
+            type='log',
+            title='gamma'
+        ),
+        zaxis=dict(
+            type='log',
+            title='C'
+        ),
+    ),
+    scene4=dict(
+        xaxis_title='T',
+        yaxis=dict(
+            type='log',
+            title='gamma'
+        ),
+        zaxis=dict(
+            type='log',
+            title='C'
+        ),
+    ),
+    showlegend=False
 )
 fig.show()
+
+# %%
