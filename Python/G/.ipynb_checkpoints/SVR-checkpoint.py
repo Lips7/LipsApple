@@ -11,10 +11,10 @@ import pandas as pd
 import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
+from hyperopt import hp, tpe, fmin, Trials, STATUS_OK
 from plotly.subplots import make_subplots
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import (RandomizedSearchCV, KFold,
-                                     train_test_split)
+from sklearn.model_selection import KFold, RandomizedSearchCV, train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
@@ -33,6 +33,8 @@ offset_dict = {
     'week': pd.offsets.Week(),
     'month': pd.offsets.BusinessMonthEnd()
 }
+
+# %%
 
 
 def get_data(frequency: str, T: str) -> None:
@@ -88,7 +90,7 @@ path = 'Data/'
 # %%
 
 
-def del_outliers(df: pd.DataFrame) -> pd.DataFrame:
+def del_outliers(df: pd.DataFrame) -> pd.DataFrame:  # Tukey Method
     q1 = df['T_mean'].quantile(0.25)
     q3 = df['T_mean'].quantile(0.75)
     iqr = q3 - q1
@@ -100,7 +102,7 @@ def del_outliers(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def training_with_all(state: str, T_range: np.ndarray, param: dict) -> pd.DataFrame:
-    result = pd.DataFrame(columns=['mse', 'param'], index=T_range)
+    result = pd.DataFrame(columns=['mse', 'gamma', 'C'], index=T_range)
 
     print(state, ' begin.')
 
@@ -113,20 +115,47 @@ def training_with_all(state: str, T_range: np.ndarray, param: dict) -> pd.DataFr
         X = new.drop(columns='T_mean')
         y = new['T_mean']
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        std_scaler = StandardScaler()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # 分割
+        std_scaler = StandardScaler()  # 标准化
         X_train = std_scaler.fit_transform(X_train)
         X_test = std_scaler.transform(X_test)
 
-        cv = KFold(n_splits=5, random_state=42)
-        randomcv = RandomizedSearchCV(SVR(kernel='rbf'), param_distributions=param, scoring='neg_mean_squared_error', n_jobs=-1, cv=cv, random_state=42, verbose=2)
+        '''
+        cv = KFold(n_splits=5, shuffle=True, random_state=42)
+        randomcv = RandomizedSearchCV(SVR(kernel='rbf'), param_distributions=param,
+                                      scoring='neg_mean_squared_error', n_jobs=-1, cv=cv, random_state=42, verbose=2)
         randomcv.fit(X_train, y_train)
 
         y_pred = randomcv.predict(X_test)
         mse = mean_squared_error(y_test, y_pred)
-        result['MSE'][T] = mse
-        result['param'][T] = randomcv.best_params_
-        print('T=' + T + ': complete.', 'mse=', mse, ', param=', randomcv.best_params_)
+
+        result['mse'][T] = mse
+        result['gamma'][T] = randomcv.best_estimator_.gamma
+        result['C'][T] = randomcv.best_estimator_.C
+
+        print('T=' + T + ': complete.', 'mse=', mse, ', param=', randomcv.best_param)
+        '''
+
+        def hyperopt_train_test(kwargs):
+            reg = SVR(kernel='rbf', **kwargs)
+            cv = KFold(n_splits=5, shuffle=True, random_state=42)
+            return cross_val_score(reg, X_train, y_train, scoring='neg_mean_squared_error', cv=cv, n_jobs=-1).mean()
+
+        def f(kwargs):
+            mse = hyperopt_train_test(kwargs)
+            return {'loss': mse, 'status': STATUS_OK}
+
+        space4svr = param
+        best = fmin(f, space4svr, algo=tpe.suggest, max_evals=100)  # max_evals=50 for day_1
+
+        best_estimator = SVR(kernel='rbf', **best)
+        best_estimator.fit(X_train, y_train)
+        y_pred = best_estimator.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+
+        result['mse'][T] = mse
+        result['gamma'][T] = best_estimator.gamma
+        result['C'][T] = best_estimator.C
 
     print(state, ' complete.')
 
@@ -135,134 +164,118 @@ def training_with_all(state: str, T_range: np.ndarray, param: dict) -> pd.DataFr
 
 # %%
 T_range = np.arange(2, 16).astype(np.str)
-param = {
-    'gamma': np.logspace(-4, -1, 4),
-    'C': np.logspace(1, 4, 4)
+space = {
+    'C': hp.uniform('C', 100, 1000),
+    'gamma': hp.uniform('gamma', 0.0001, 0.1)
 }
 for state in ['day_1', 'day_2', 'week_1', 'week_2']:
-    result = training_with_all(state=state, T_range=T_range, param=param)
+    result = training_with_all(state=state, T_range=T_range, param=space)
     result.to_csv('result_' + state + '.csv', index_label='T')
 
 # %% [markdown]
 # ### 测试
 # %%
 T_range = np.arange(2, 16).astype(np.str)
-param = {
-    'gamma': np.logspace(-4, -1, 4),
-    'C': np.logspace(1, 4, 4)
+space = {
+    'C': hp.uniform('C', 100, 1000),
+    'gamma': hp.uniform('gamma', 0.0001, 0.1)
 }
-test = training_with_all(state='day_1', T_range=T_range, param=param)
+state = 'week_1'
+test = training_with_all(state=state, T_range=T_range, param=space)
 test.to_csv('result_' + state + '.csv', index_label='T')
+
+# %%
+df = pd.read_csv('result_' + state + '.csv', index_col='T')
+df
+
+# %%
+fig = px.scatter_3d(
+    df,
+    x=df.index,
+    y='gamma',
+    z='C',
+    size='mse',
+    title=state,
+    width=600,
+    height=600
+)
+fig.show()
 
 # %% [markdown]
 # ## 结论
 
 # %% [markdown]
-# ### 重置数据
-
-# %%
-
-
-def reset_data(state: str) -> None:
-    df = pd.read_csv('result_' + state + '.csv', index_col='T')  # type:pd.DataFrame
-    df = df.values.tolist()
-    for i in np.arange(14):
-        tmp = eval(df[i][1])
-        df[i].pop()
-        df[i] += [tmp['gamma'], tmp['C']]
-    df = pd.DataFrame(df, index=np.arange(2, 16), columns=['mse', 'gamma', 'C'])
-    df.to_csv('result_' + state + '.csv', index_label='T')
-
-
-# %%
-for state in ['day_1', 'day_2', 'week_1', 'week_2']:
-    reset_data(state)
-
-    
-# %% [markdown]
 # ### 图表
-    
+
 # %%
-day_1 = pd.read_csv('result_day_1.csv', index_col='T')
-day_2 = pd.read_csv('result_day_2.csv', index_col='T')
-week_1 = pd.read_csv('result_week_1.csv', index_col='T')
-week_2 = pd.read_csv('result_week_2.csv', index_col='T')
+day_1 = pd.concat([pd.read_csv('result_day_1.csv'), pd.Series(np.repeat('day_1', 14), name='state')], axis=1)
+day_2 = pd.concat([pd.read_csv('result_day_2.csv'), pd.Series(np.repeat('day_2', 14), name='state')], axis=1)
+week_1 = pd.concat([pd.read_csv('result_week_1.csv'), pd.Series(np.repeat('week_1', 14), name='state')], axis=1)
+week_2 = pd.concat([pd.read_csv('result_week_2.csv'), pd.Series(np.repeat('week_2', 14), name='state')], axis=1)
+result = pd.concat([day_1, day_2, week_1, week_2], ignore_index=True)
+result
+
+# %%
+fig = px.scatter_3d(
+    result,
+    x='T',
+    y='gamma',
+    z='C',
+    size='mse',
+    color='state',
+    log_y=True,
+    size_max=40
+)
+fig.show()
+
+# %%
+fig = px.line(
+    result,
+    x='T',
+    y='mse',
+    color='state'
+)
+fig.show()
 
 # %%
 fig = make_subplots(
     rows=2,
     cols=2,
     specs=[
-        [
-            {'type': 'scene'},
-            {'type': 'scene'}
-        ],
-        [
-            {'type': 'scene'},
-            {'type': 'scene'}
-        ]
+        [{'type': 'scene'}, {'type': 'scene'}],
+        [{'type': 'scene'}, {'type': 'scene'}]
     ],
     subplot_titles=['day_1', 'day_2', 'week_1', 'week_2']
 )
 fig.add_traces(
     [go.Scatter3d(
-        x=df.index,
+        x=df['T'],
         y=df['gamma'],
         z=df['C'],
         mode='markers',
-        marker=dict(
-            size=day_1['mse']*10
-        )
-    ) for df in [day_1, day_2, week_1, week_2]],
+        marker_size=df['mse'] * 10,
+        name=name,
+        text=df['mse'],
+        hovertemplate='T=%{x}<br>gamma=%{y}<br>C=%{z}<br>mse=%{text}',
+    ) for df, name in [(day_1, 'day_1'), (day_2, 'day_2'), (week_1, 'week_1'), (week_2, 'week_2')]],
     rows=[1, 1, 2, 2],
     cols=[1, 2, 1, 2]
 )
+scene_dict = dict(
+    xaxis_title='T',
+    yaxis=dict(
+        type='log',
+        title='gamma'
+    ),
+    zaxis_title='C'
+)
 fig.update_layout(
-    scene=dict(
-        xaxis_title='T',
-        yaxis=dict(
-            type='log',
-            title='gamma'
-        ),
-        zaxis=dict(
-            type='log',
-            title='C'
-        ),
-    ),
-    scene2=dict(
-        xaxis_title='T',
-        yaxis=dict(
-            type='log',
-            title='gamma'
-        ),
-        zaxis=dict(
-            type='log',
-            title='C'
-        ),
-    ),
-    scene3=dict(
-        xaxis_title='T',
-        yaxis=dict(
-            type='log',
-            title='gamma'
-        ),
-        zaxis=dict(
-            type='log',
-            title='C'
-        ),
-    ),
-    scene4=dict(
-        xaxis_title='T',
-        yaxis=dict(
-            type='log',
-            title='gamma'
-        ),
-        zaxis=dict(
-            type='log',
-            title='C'
-        ),
-    ),
-    showlegend=False
+    scene=scene_dict,
+    scene2=scene_dict,
+    scene3=scene_dict,
+    scene4=scene_dict,
+    width=1000,
+    height=1000
 )
 fig.show()
 
