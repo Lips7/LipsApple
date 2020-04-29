@@ -1,0 +1,187 @@
+% !TeX root = ../main.tex
+\chapter{基于SVM的股票价格预测模型实验}
+
+\section{实验环境}
+
+\subsection{硬件环境}
+
+内存：16.00 GB
+
+CPU：Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHZ 1.50GHz。
+
+\subsection{软件环境}
+本文使用的软件环境如下表：
+\begin{table}[ht]
+    \centering
+    \caption{软件（包）版本}
+    \begin{tabular}{lc}
+        \hline
+        {名称} & {版本号}\\
+        \hline
+        {Linux (WSL)} & {4.19.104-microsoft-standard}\\
+        {Python} & {3.7.7}\\
+        {Numpy} & {1.81.1}\\
+        {Pandas} & {1.0.3}\\
+        {Scikit-learn} & {0.22.1}\\
+        {Hyperopt} & {0.2.3}
+    \end{tabular}
+\end{table}
+
+\section{实验流程}
+
+\subsubsection{实验数据}
+
+利用Pandas获取到的部分数据如下表，以日线\underline{~~}1，$T=15$为例：
+\begin{table}[ht]
+    \centering
+    \caption{日线\underline{~~}1，$T=15$}
+    \resizebox{\textwidth}{12mm}{
+    \begin{tabular}{lllllllllllll}
+        \hline
+        Open\underline{~~}up &  Close\underline{~~}up &  High\underline{~~}up &  Low\underline{~~}up &     Vol\underline{~~}up &     Amount\underline{~~}up &  Open\underline{~~}down &  Close\underline{~~}down &  High\underline{~~}down &  Low\underline{~~}down &   Vol\underline{~~}down &   Amount\underline{~~}down &     T\underline{~~}mean \\
+        \hline
+            9.03 &      9.17 &     9.17 &    9.01 &  1013673.0 &  9.681270e+08 &       9.24 &        9.18 &       9.33 &      9.15 &  1279688.0 &  1.240686e+09 &   8.948667 \\
+           13.88 &     13.91 &    14.09 &   13.73 &  2444548.0 &  3.479176e+09 &      14.04 &       13.94 &      14.51 &     13.91 &  2656294.0 &  3.849312e+09 &  13.630667 \\
+           12.29 &     12.32 &    12.50 &   12.16 &  1013663.0 &  1.278185e+09 &      12.48 &       12.34 &      12.56 &     12.16 &  1045757.0 &  1.318960e+09 &  11.583333 \\
+            8.58 &      8.63 &     8.74 &    8.49 &   638272.0 &  5.595231e+08 &       8.73 &        8.66 &       8.79 &      8.63 &   649476.0 &  5.766833e+08 &   9.594000 \\
+           12.15 &     12.17 &    12.34 &   11.90 &  1157650.0 &  1.416000e+09 &      12.34 &       12.21 &      12.49 &     12.09 &  1411794.0 &  1.757797e+09 &  12.252000 \\
+        \hline
+    \end{tabular}}
+\end{table}
+
+\subsubsection{数据预处理}
+
+在数据输入模型之前，还需要进行数据预处理。
+首先我们利用train\underline{~~}test\underline{~~}split函数来随机地将数据分割成4个部分，
+X\underline{~~}train代表的是训练样本的输入向量的数据，即选择的相关指标，包括Open\underline{~~}up，Close\underline{~~}up等等；
+y\underline{~~}train代表的是训练样本的输出向量的数据，即未来$T$个交易日的平均最低价T\underline{~~}mean；
+X\underline{~~}test代表的是测试样本的输入向量的数据；
+y\underline{~~}test代表的是测试样本的输出向量的数据；
+然后，经过多次测试，使用$Z\text{-}score$方法来对数据进行标准化，
+这里使用的是StandardScaler类来对X\underline{~~}train和X\underline{~~}test进行标准化，
+需要注意的是StandardScaler类不能对所有样本进行适配，因为测试样本不应该包含任何关于训练数据的先验信息。
+
+\subsubsection{超参数寻优}
+
+基于前人的经验和多次实验的检验，本文最终选择了RBF核函数，能够取得更平滑的估计，其中$\gamma$的值决定了模型的收敛速度，
+$\gamma$越小，收敛越快。但是小的$\gamma$值带来的问题是，所有的预测结果都将接近于平均值，$MSE$虽然不大但是预测结果没有任何参考意义。
+所以找到一组好的参数能够使模型的预测效果更好。
+
+此处我们利用KFold函数来将训练数据随机地分成5份来进行交叉验证，将输出的平均均方误差来作为超参数寻优最小化的目标，
+再利用Hyperopt包定义超参数搜寻空间$(C,\gamma)\in[1, 1000]\times[0.0001, 0.1]$，
+并利用Hyperopt提供的TPE算法来进行超参数寻优。
+
+\section{实验结果与分析}
+
+按照上述过程，对$T=2\sim15$和日线\underline{~~}1、日线\underline{~~}2、周线\underline{~~}1、周线\underline{~~}2共个56种情况进行实验，得到结果如下：
+
+\subsection{日线第1种情况}
+
+表(4.3)中给出了日线\underline{~~}1的实验结果，可以看到相差无几的数据集输入模型后所产生的超参数黑盒函数也是不尽相同的，
+$MSE$是衡量模型预测效果的重要指标，由$MSE$的值我们得知预测值和实际值的偏离并不大，预测的趋势和实际情况是比较吻合的。
+接下来我们查看$MSE$随周期$T$的变化情况，根据人的主观判断，$MSE$的值应该随着$T$的增加而增加的。
+
+\begin{table}[ht]
+    \centering
+    \caption{日线\underline{~~}1实验结果}
+    \begin{tabular}{llll}
+        \hline
+        $T$&  $\gamma$ &         $C$ &     $MSE$ \\
+        \hline
+         2 &  0.007964 &  407.883894 &  0.157652 \\
+         3 &  0.004749 &  632.462727 &  0.209545 \\
+         4 &  0.002560 &  735.537083 &  0.280881 \\
+         5 &  0.005362 &  250.287609 &  0.291643 \\
+         6 &  0.005518 &  414.506218 &  0.414942 \\
+         7 &  0.006147 &  608.717190 &  0.515880 \\
+         8 &  0.004861 &  389.941513 &  0.471686 \\
+         9 &  0.006793 &  104.016026 &  0.535587 \\
+        10 &  0.003483 &  637.324620 &  0.659430 \\
+        11 &  0.004798 &   35.365675 &  0.663501 \\
+        12 &  0.004625 &  392.732612 &  0.660285 \\
+        13 &  0.006475 &  789.664282 &  0.730031 \\
+        14 &  0.003718 &  556.280729 &  0.810854 \\
+        15 &  0.005038 &  428.440799 &  0.889880 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[htb]
+    \centering
+    \caption{日线\underline{~~}1预测结果}
+    \includegraphics[scale=0.5]{day_1.png}
+\end{figure}
+
+从图(4.1)中我们可以看到$MSE$在大体上是随着$T$的增加而增加的，
+但是分别在$T=8$和$T=12$处出现了异常情况。
+我们可依据预测结果作出如下推断：当今日成交量大于昨日成交量，且今日收盘价大于昨日收盘价的情况出现时，
+适宜做短期投资，因为投资周期越小，所预测的未来$T$交易日最低价平均值就越准确。
+
+\subsection{日线第2种情况}
+
+\begin{figure}[htb]
+    \centering
+    \caption{日线\underline{~~}2预测结果}
+    \includegraphics[scale=0.5]{day_2.png}
+\end{figure}
+
+图(4.2)表明对于日线\underline{~~}2的预测结果波动较大，
+其中$MSE$的最低值出现在$T=3$，而不是$T=2$；
+另外模型在$T=12$和$T=15$时的预测表现也十分不错;
+然后在$T=13$处出现了重大的预测误差，对投资行为十分不利。
+
+\subsection{周线第1种情况}
+
+\begin{figure}[htb]
+    \centering
+    \caption{周线\underline{~~}1预测结果}
+    \includegraphics[scale=0.5]{week_1.png}
+\end{figure}
+
+如图(4.3)，周线\underline{~~}1的预测结果波动不大，但是相对于日线\underline{~~}1来说更加陡峭，
+在总体变化趋势上也遵循了经验，在$T=2$时取得$MSE$的最小值。
+
+\subsection{周线第2种情况}
+
+\begin{figure}[hbt]
+    \centering
+    \caption{周线\underline{~~}2预测结果}
+    \includegraphics[scale=0.5]{week_2.png}
+\end{figure}
+
+如图(4.4)，预测误差分别在$T=9,10,11,14$处都表现十分反常，说明模型的预测效果并不好。
+
+\subsection{总结}
+
+\begin{figure}[ht]
+    \centering
+    \caption{4种实验结果汇总}
+    \includegraphics[scale=0.5]{3.png}
+\end{figure}
+
+在图(4.5)中，每一个泡泡的大小代表$MSE$的大小，通过此图我们可以很清楚地认识到进行超参数寻优时黑盒函数的复杂性，
+以及进行超参数寻优的必要性。
+
+最后，我们将4种实验结果组合起来，如图(4.6)。从图中我们可以观察到：
+\begin{itemize}
+    \item 除了日线\underline{~~}2，其余3种情况都是在$T=2$时取得$MSE$的最小值。
+    \item 在$T$值较高时，日线\underline{~~}2和周线\underline{~~}2都出现了预测误差较大的结果。
+    \item 分别在$T=2,4,13$，周线\underline{~~}2的预测表现优于日线\underline{~~}2。
+    \item 周线\underline{~~}1的预测误差仅在$T=9,10,11,14$时优于周线\underline{~~}1的结果。
+    \item 日线\underline{~~}2的预测误差仅在$T=3,5,6,7$时优于日线\underline{~~}1的结果。
+\end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \caption{4种实验结果预测误差汇总}
+    \includegraphics[scale=0.5]{sum.png}
+\end{figure}
+
+通过对实验结果的总结，我们可以根据不同的情况给出投资建议：
+\begin{enumerate}
+    \item 当今日成交量大于昨日成交量，且今日收盘价大于昨日收盘价的情况出现时，即日线\underline{~~}1，选择投资周期$2\text{日}\leq T\leq4\text{日}$或$8\text{日}\leq T\leq15\text{日}$。
+    \item 当今日成交量大于昨日成交量，且今日收盘价大于昨日收盘价，且今日最低价小于昨日最低价的情况出现时，即日线\underline{~~}2，选择$5\text{日}\leq T\leq7\text{日}$。
+    \item 当这周成交量大于上周成交量，且这周收盘价大于上周收盘价的情况出现时，即周线\underline{~~}1，选择$9\text{周}\leq T\leq11\text{周}$。
+    \item 当这周成交量大于上周成交量，且这周收盘价大于上周收盘价，且这周最低价小于上周最低价的情况出现时，即周线\underline{~~}2，选择$2\text{周}\leq T\leq8\text{周}$。
+    \item 对于$12\text{周}\leq T\leq15\text{周}$，不建议以此投资周期进行投资。
+\end{enumerate}

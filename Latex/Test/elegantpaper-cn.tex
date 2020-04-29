@@ -9,6 +9,9 @@
 \version{0.08}
 \date{\zhtoday}
 
+\usepackage{appendix}
+\renewcommand{\appendixtocname}{附录}
+\renewcommand{\appendixpagename}{附录}
 \begin{document}
 
 \maketitle
@@ -62,7 +65,7 @@
 \end{enumerate}
 
 \subsection{参考文献}
-此模板使用 \hologo{BibTeX} 来生成参考文献，中文模式下默认使用的文献样式（bib style）是 \lstinline{GB/T 7714-2015}\footnote{通过调用 \href{https://ctan.org/pkg/gbt7714}{\lstinline{gbt7714}} 宏包}。参考文献示例：\cite{en3} 使用了中国一个大型的 P2P 平台（人人贷）的数据来检验男性投资者和女性投资者在投资表现上是否有显著差异。
+此模板使用 \hologo{BibTeX} 来生成参考文献，中文模式下默认使用的文献样式（bib style）是 \lstinline{GB/T 7714-2015}\footnote{通过调用 \href{https://ctan.org/pkg/gbt7714}{\lstinline{gbt7714}} 宏包}。参考文献示例：~\cite{en3} 使用了中国一个大型的 P2P 平台（人人贷）的数据来检验男性投资者和女性投资者在投资表现上是否有显著差异。
 
 你可以在谷歌学术，Mendeley，Endnote 中获得文献条目（bib item），然后把它们添加到 \lstinline{wpref.bib} 中。在文中引用的时候，引用它们的键值（bib key）即可。注意需要在编译的过程中添加 \hologo{BibTeX} 编译。
 
@@ -191,5 +194,10 @@ The content of conclusion section.
 
 \nocite{*}
 \bibliography{wpref}
+
+\appendix
+\appendixpage
+\addappheadtotoc
+\section{How I became inspired}
 
 \end{document}
