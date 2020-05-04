@@ -10,56 +10,70 @@
 }
 
 \begin{abstract}
-    自改革开放以来，随着中国经济的腾飞，人们拥有的财富越来越多，并且总想通过不同的投
-    资手段来扩大自己的财富，这便催生了各种各样的投资手段。然而，传统的投资手段，如基
-    金、定期储蓄等，风险极小但利率较低，普通人难以通过这种方式来抵抗通货膨胀引起的货
-    币贬值。随后，金融危机的出现导致大量资金涌入房地产，投资房地产也成为了大多数中产
-    阶级的选择，但近几年来，国家出台了一系列政策来遏制房地产泡沫，延缓房价上升。于是
-    ，更多资金涌入了二级市场，投资者们希望通过股票投资来迅速实现资产增值，而高收益往
-    往伴随着高风险，如何准确预测股价的走势便成了当下股市研究的一个重要课题。相比于传
-    统的利用机器学习进行股票预测的方法，本文针对中国大陆所有股票，在日线和周线所分别
-    选取的两种特定数据形态组合，利用支持向量机对未来多个交易周期的股票最低价平均值进
-    行预测，并给出相应的投资建议。
+    自改革开放以来，人们拥有的金钱越来越多，并且总想通过不同的方式来扩大自己的财富，
+    这便催生了各种各样的投资手段。然而传统的投资手段，如基金、定期储蓄等，风险极小但
+    利率较低，难以抵抗通货膨胀。随后金融危机的出现导致房地产投资成为了一种新选择，但
+    近几年国家出台了一系列政策来延缓房价上升。于是，许多资金涌入了股票二级市场，投资
+    者们希望通过这种方式来实现资产的迅速增值，而高收益往往伴随着高风险，如何准确预测
+    股价的走势便成了当下股市研究的一个重要课题。
 
-    本文的主要内容如下：第一章介绍了本文的研究背景及意义，和有关股票预测的国内外研究
-    现状；第二章介绍了支持向量机的理论基础；第三章对模型的实现过程做了详细的解释，包
-    括选取指标，标准化数据，和选取核函数以及超参数寻优方法，以及对实验效果的评价指标
-    ；第四章呈现了本文的实验结果，并对得到的结果数据进行了分析和总结，最后给出相应的
-    投资决策建议。
+    目前比较热门的量化投资的方法，即利用机器学习手段对股价进行预测，往往仅针对一种或
+    多种股票，研究不同的数值指标对预测效果的影响，或者从多种股票中选取收益率较高的股
+    票。不同于这些方法，本文针对中国大陆所有股票，在日线和周线分别选取的两种特定数据
+    形态组合，利用支持向量机对未来多个交易周期的股票最低价平均值进行预测，并给出相应
+    的投资建议。本文的主要内容如下：第一章介绍了本文的研究背景及意义，和有关股票预测
+    的国内外研究现状；第二章介绍了支持向量机的理论基础；第三章对模型的实现过程做了详
+    细的解释，包括选取指标，标准化数据，和选取核函数以及各种超参数寻优方法的对比，还
+    有对实验效果的评价指标；第四章呈现了本文的实验结果，并对得到的结果数据进行了分析
+    和总结，从中挖掘数据的价值，最后给出相应的投资决策建议；第五章为本文工作的总结以
+    及对未来的展望。
 
+    本文经实验研究后发现，支持向量机回归模型对特定数据形态组合的股票有不错的预测效果
+    ，不仅体现在短期预测上，其甚至在一些中长期预测上也有相当好的效果。
+    
 \end{abstract}
 
 \begin{enabstract}
-    Since the Reform and Opening up, as China's economy has taken off,
-    people have more and more wealth, and desire to expand their wealth
-    through different means of investment, which has spawned various means
-    of investment. While the traditional investment instruments, such as
-    funds, regular saving, etc., have minimal risk but low interest rates.
-    making it difficult for the ordinary people to resist the currency
-    depreciation caused by inflation in this way. Subsequently, the financial
-    crisis led to an influx of money pouring into the real estate, investment
-    in which has become the choice of most the middle class. However, in
-    recent years, China has introduced a series of policies to curb the real
-    estate bubble and slow down the rise of housing prices. As a result,
-    more money poured into the secondary market, investors hope to achieve
-    asset appreciation quickly through stock investment. While high returns are
-    often accompanied by high risk, how to accurately predict the trend of
-    stock prices has become an important topic in the current stock market
-    research. In contrast to the traditional machine learning approach to 
-    stock prediction, this paper used a support vector machine to predict 
-    the average of stock lows over multiple trading cycles in the future, 
-    using all stocks in Chine mainland for two specific data patterns selected 
-    on the daily and weekly line, and gives investment recommendations.
+    Since the Reform and Opening up, people have more and more money, 
+    and desire to expand their wealth through different means, which 
+    has spawned various methods of investment. While the traditional 
+    investment instruments such as funds, regular saving, etc., have 
+    minimal risk but low interest rates, making it difficult to resist 
+    the inflation. Subsequently, the financial crisis led to investing
+    on real estate has become a new choice. However, in recent years, 
+    China has introduced a series of policies to slow down the rise 
+    of housing prices. As a result, more money poured into the secondary 
+    market, investors hope to achieve asset appreciation quickly through 
+    stock investment. While high returns are often accompanied by high 
+    risks, how to accurately predict the trend of stock prices has become 
+    an important topic in the current stock market research. 
 
-    The main contents of this paper are as follows: Chapter 1 introduces 
-    the background and significance and the current status of domestic and 
-    international research on stock prediction; Chapter 2 introduces the 
-    theoretical basis of the support vector machine; Chapter 3 provides a 
-    detailed explanation of the implementation process of the model, including 
-    the selection of indicators, standardized data, the selection of kernal 
-    functions and hyperparameter optimization methods, and the evaluation of 
-    the experimental result; Chapter 4 presents the results of this paper, 
-    analyzes and summarizes the data, and finally gives the investment decision 
-    recommendations.
+    The more popular current approach to quantitative investing, which 
+    uses machine learning to make predictions about stock prices, tends 
+    to target only one or more stocks, studying the effect of different 
+    numerical indicators on the predictive effect, or picking stocks 
+    with higher yields from a wide range of stocks. In contrast to the 
+    traditional machine learning approach to stock prediction, this paper 
+    used a support vector machine to predict the average of stock lows 
+    over multiple trading cycles in the future, using all stocks in China 
+    mainland for two specific data patterns selected on the daily and 
+    weekly line, and gives investment recommendations. The main contents 
+    of this paper are as follows: Chapter 1 introduces the background 
+    and significance and the current status of domestic and international 
+    research on stock prediction; Chapter 2 introduces the theoretical 
+    basis of the support vector machine; Chapter 3 provides a detailed 
+    explanation of the implementation process of the model, including 
+    the selection of indicators, standardized data, the selection of 
+    kernal functions and the difference between hyperparameter optimization 
+    methods, and the evaluation of the experimental result; Chapter 4 
+    presents the results of this paper, analyzes and summarizes the data, 
+    extracts the value, and finally gives the investment decision 
+    recommendations; Chapter 5 provides a summary of the work of this 
+    paper and a vision for the future.
+
+    In this paper, it is found that the support vector machine regression 
+    model has a good predictive effect on stocks with a particular combination 
+    of data patterns, not only on short-term predictions, but also on some 
+    medium and long-term predictions.
 
 \end{enabstract}

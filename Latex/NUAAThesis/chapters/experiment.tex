@@ -59,7 +59,7 @@ $\gamma$越小，收敛越快。但是小的$\gamma$值带来的问题是，所�
 
 \subsection{日线第1种情况}
 
-表(4.3)中给出了日线\underline{~~}1的实验结果，可以看到相差无几的数据集输入模型后所产生的超参数黑盒函数也是不尽相同的，
+表(4.2)中给出了日线\underline{~~}1的实验结果，可以看到相差无几的数据集输入模型后所产生的超参数黑盒函数也是不尽相同的，
 $MSE$是衡量模型预测效果的重要指标，由$MSE$的值我们得知预测值和实际值的偏离并不大，预测的趋势和实际情况是比较吻合的。
 接下来我们查看$MSE$随周期$T$的变化情况，根据人的主观判断，$MSE$的值应该随着$T$的增加而增加的。
 
@@ -120,8 +120,8 @@ $MSE$是衡量模型预测效果的重要指标，由$MSE$的值我们得知预�
 
 \begin{figure}[htb]
     \centering
-    \caption{日线\underline{~~}2预测结果}
     \includegraphics[scale=0.5]{day_2_new.png}
+    \caption{日线\underline{~~}2预测结果}
 \end{figure}
 
 图(4.1b)表明对于日线\underline{~~}2的预测结果波动较大，
@@ -147,7 +147,6 @@ $MSE$是衡量模型预测效果的重要指标，由$MSE$的值我们得知预�
 
 \begin{figure}[ht]
     \centering
-    \caption{4种实验结果汇总}
     \subfigure[气泡图]{
         \centering
         \includegraphics[scale=0.5]{3.png}
@@ -157,6 +156,7 @@ $MSE$是衡量模型预测效果的重要指标，由$MSE$的值我们得知预�
         \centering
         \includegraphics[scale=0.5]{sum.png}
     }
+    \caption{4种实验结果汇总}
 \end{figure}
 
 在图(4.3a)中，每一个泡泡的大小代表$MSE$的大小，通过此图我们可以很清楚地认识到进行超参数寻优时黑盒函数的复杂性，
@@ -174,6 +174,6 @@ $MSE$是衡量模型预测效果的重要指标，由$MSE$的值我们得知预�
 \begin{enumerate}
     \item 当今日成交量大于昨日成交量，且今日收盘价大于昨日收盘价的情况出现时，即日线\underline{~~}1，投资周期越短预测越准确。
     \item 如果还出现了今日最低价小于昨日最低价的情况，即日线\underline{~~}2，选择投资周期$T=3,6,7,12\text{日}$，比日线\underline{~~}1更为准确。
-    \item 当这周成交量大于上周成交量，且这周收盘价大于上周收盘价的情况出现时，即周线\underline{~~}1，选择投资周期$T=2,3,4,5\text{周}$和$T=9,10,11,12\text{周}$，预测结果比较平稳。
+    \item 当这周成交量大于上周成交量，且这周收盘价大于上周收盘价的情况出现时，即周线\underline{~~}1，选择投资周期$2\text{周}\leq T\leq5\text{周}$和$9\text{周}\leq T\leq12\text{周}$，预测结果比较平稳。
     \item 如果还出现了这周最低价小于上周最低价的情况，即周线\underline{~~}2，在大部分$T$上都取得了比周线\underline{~~}1更好的结果，尤其值得注意的是$T=2\text{周}$和$T=15\text{周}$，表现甚至优于日线。但是对于$8\text{周}\leq T\leq14\text{周}$，不建议以此投资周期进行投资。
 \end{enumerate}
