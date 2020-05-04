@@ -10,51 +10,56 @@
 }
 
 \begin{abstract}
-    自改革开放以来，随着中国经济的腾飞，人们拥有的财富越来越多，而人的欲望是无止境的，
-    总想通过不同的投资手段来扩大自己的财富，这便催生了各种各样的投资手段。然而，传统
-    的投资手段，如基金、定期储蓄等，风险极小但利率较低，普通人难以通过这种方式来抵抗
-    通货膨胀引起的货币贬值。随后，金融危机的出现导致大量资金涌入房地产，投资房地产也
-    成为了大多数中产阶级的选择，但近几年来，国家出台了一系列政策来遏制房地产泡沫，延
-    缓房价上升。于是，更多资金涌入了二级市场，投资者们希望通过股票投资来迅速实现资产
-    增值，而高收益往往伴随着高风险，如何准确预测股价的走势便成了当下股市研究的一个重
-    要课题。本文从3600余种股票中，选取出两种特定的模式，以此数据集为基础，来对股票未
-    来多个交易日或交易周的股票最低价平均值进行预测。
+    自改革开放以来，随着中国经济的腾飞，人们拥有的财富越来越多，并且总想通过不同的投
+    资手段来扩大自己的财富，这便催生了各种各样的投资手段。然而，传统的投资手段，如基
+    金、定期储蓄等，风险极小但利率较低，普通人难以通过这种方式来抵抗通货膨胀引起的货
+    币贬值。随后，金融危机的出现导致大量资金涌入房地产，投资房地产也成为了大多数中产
+    阶级的选择，但近几年来，国家出台了一系列政策来遏制房地产泡沫，延缓房价上升。于是
+    ，更多资金涌入了二级市场，投资者们希望通过股票投资来迅速实现资产增值，而高收益往
+    往伴随着高风险，如何准确预测股价的走势便成了当下股市研究的一个重要课题。相比于传
+    统的利用机器学习进行股票预测的方法，本文针对中国大陆所有股票，在日线和周线所分别
+    选取的两种特定数据形态组合，利用支持向量机对未来多个交易周期的股票最低价平均值进
+    行预测，并给出相应的投资建议。
 
-    本文第一章介绍了研究背景及意义，国内外股市的研究现状；第二章介绍了将使用的机器学
-    习理论；第三章为模型的实现过程，使用标准化方法预处理数据的12个指标，将这些指标作
-    为支持向量机模型的输入向量，选择高斯核函数，利用TPE算法与交叉验证方法来对参数进
-    行自动寻优，得到最佳的核参数和一个回归模型。最后在测试集上进行验证，得到多个周期
-    的股价预测结果；第四章为实验结果的总结与分析。
+    本文的主要内容如下：第一章介绍了本文的研究背景及意义，和有关股票预测的国内外研究
+    现状；第二章介绍了支持向量机的理论基础；第三章对模型的实现过程做了详细的解释，包
+    括选取指标，标准化数据，和选取核函数以及超参数寻优方法，以及对实验效果的评价指标
+    ；第四章呈现了本文的实验结果，并对得到的结果数据进行了分析和总结，最后给出相应的
+    投资决策建议。
 
 \end{abstract}
 
 \begin{enabstract}
     Since the Reform and Opening up, as China's economy has taken off,
-    people have more and more wealth, and desires to expand their wealth
-    through different means of investment, is endless, which has spawned
-    various means of investment. While the traditional investment instruments,
-    such as funds, regular saving, etc., have minimal risk but low interest rates.
-    making it difficult for the ordinary people to resist the currency depreciation
-    caused by inflation in this way. Subsequently, the financial crisis led to an
-    influx of money pouring into the real estate, investment in which
-    has become the choice of most the middle class. However, in recent years,
-    China has introduced a series of policies to curb the real estate
-    bubble and slow down the rise of housing prices. As a result, more money
-    poured into the secondary market, investors hope to achieve asset
-    appreciation quickly through stock investment. While high returns are
-    often accompanied by high risk, how to accurately predict the trend
-    of stock prices has become an important topic in the current stock market
-    research. In this paper, two specific patterns are selected from more
-    than 3600 stocks. Based on this data set, the average value of lowest
-    prices for multiple trading days or trading weeks in the future is predicted.
+    people have more and more wealth, and desire to expand their wealth
+    through different means of investment, which has spawned various means
+    of investment. While the traditional investment instruments, such as
+    funds, regular saving, etc., have minimal risk but low interest rates.
+    making it difficult for the ordinary people to resist the currency
+    depreciation caused by inflation in this way. Subsequently, the financial
+    crisis led to an influx of money pouring into the real estate, investment
+    in which has become the choice of most the middle class. However, in
+    recent years, China has introduced a series of policies to curb the real
+    estate bubble and slow down the rise of housing prices. As a result,
+    more money poured into the secondary market, investors hope to achieve
+    asset appreciation quickly through stock investment. While high returns are
+    often accompanied by high risk, how to accurately predict the trend of
+    stock prices has become an important topic in the current stock market
+    research. In contrast to the traditional machine learning approach to 
+    stock prediction, this paper used a support vector machine to predict 
+    the average of stock lows over multiple trading cycles in the future, 
+    using all stocks in Chine mainland for two specific data patterns selected 
+    on the daily and weekly line, and gives investment recommendations.
 
-    The first chapter introduces the research background and significance,
-    the research status of stock market at home and abroad. The second chapter
-    introduces the machine learning theory to be used. The third chapter is the
-    application of the model, standardized method is applied to preprocess
-    the twelve indexes of the data, which is used as the input vectors of the support
-    vector machine model. Finally, it is verified on the test set, multiple
-    stock price prediction results are obtained. The fourth chapter is the summary 
-    of the experiment.
+    The main contents of this paper are as follows: Chapter 1 introduces 
+    the background and significance and the current status of domestic and 
+    international research on stock prediction; Chapter 2 introduces the 
+    theoretical basis of the support vector machine; Chapter 3 provides a 
+    detailed explanation of the implementation process of the model, including 
+    the selection of indicators, standardized data, the selection of kernal 
+    functions and hyperparameter optimization methods, and the evaluation of 
+    the experimental result; Chapter 4 presents the results of this paper, 
+    analyzes and summarizes the data, and finally gives the investment decision 
+    recommendations.
 
 \end{enabstract}
