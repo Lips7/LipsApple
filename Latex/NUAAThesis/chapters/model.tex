@@ -3,7 +3,7 @@
 
 \section{整体思路}
 
-与前人所做的工作不同，本文所研究的对象是具有特定形态组合的股票数据，以此作为基础来训练SVM回归模型。
+与前人所做的工作不同，本文采取量化K线的策略，研究的对象为具有特定形态组合的股票数据，以此作为基础来训练SVM回归模型。
 
 实现基于SVM的股票价格预测模型的思路是：首先选择对股价预测有重要参考价值的指标；再提取与之相对应的历史数据；
 并从中筛选出具有特定形态组合的数据；然后对数据进行预处理和标准化；根据数据特征选择SVM核函数；
@@ -58,6 +58,21 @@
     \item 日线\underline{~~}1，今日成交量大于昨日成交量，且今日收盘价大于昨日收盘价。
     \item 日线\underline{~~}2，今日成交量大于昨日成交量，且今日收盘价大于昨日收盘价，且今日最低价小于昨日最低价。
 \end{enumerate}
+
+两种数据形态组合分别如图(3.1)和图(3.2)所示。
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[scale=1]{case 1.png}
+    \caption{第一种数据形态组合的例子}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[scale=1]{case 2.png}
+    \caption{第二种数据形态组合的例子}
+\end{figure}
+
 在周线上也将数据筛选成了2种特定的数据组合：
 \begin{enumerate}
     \item 周线\underline{~~}1，这周成交量大于上周成交量，且这周收盘价大于上周收盘价。

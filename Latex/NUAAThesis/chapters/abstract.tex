@@ -2,69 +2,67 @@
 
 \nuaasetup{
     keywords = {
-            股票预测，量化K线，支持向量机
+            股票预测；量化K线；支持向量机；股票特征数据
         },
     keywords* = {
-            Stock Prediction, Quantitative K-line, Support Vector Machine,
+            Stock Prediction; Quantitative K-line; Support Vector Machine; Stock Feature Data
         },
 }
 
 \begin{abstract}
     
-    如何在股票市场上获取超额收益一直是投资者们关心的问题，由此衍生了许多分析预测和选
-    股理论，如最开始的基本分析和技术分析：前者认为可以通过确定股票的内在价值来预测股
-    价；后者根据股票的历史数据来预测股价。再后来有多因子选股模型：寻找和股票收益率最
-    相关的因素，来刻画股票并进行选择。不同于这些方法，本文采取量化K线的方法，对K线数
-    据筛选后利用机器学习方法进行预测。
+    如何在股票市场上获取超额收益一直是投资者们关心的问题，由此衍生了许多分析预测和选股理论，
+    如最开始的基本面分析和技术分析：前者认为可以通过确定股票的内在价值来预测股价；后者根据
+    股票的历史K线数据来预测股价。最近10年来，量化多因子模型快速发展：寻找和股票收益率最相
+    关的因素，来刻画股票并进行选择。不同于这些方法，本文采取量化K线的方法，对K线数据筛选后
+    利用机器学习方法进行预测。
 
-    本文针对中国大陆所有股票，分别在日线和周线上选取两种特定的数据形态组合，再利用支
-    持向量机对未来多个交易周期的股票最低价平均值进行预测，并给出投资建议。本文的主要
-    内容如下：第一章介绍了研究背景及研究意义，和有关股票预测的国内外研究现状；第二章
-    介绍了统计学习理论和支持向量机的理论基础；第三章对模型的实现过程做了详细的解释，
-    包括选取指标，标准化数据，选取核函数以及各种超参数寻优方法的说明，和选择评估实验
-    效果的评价指标；第四章呈现了本文的实验结果，并对得到的结果数据进行了分析和总结，
-    从中找到数据的价值，最后给出相应的投资决策建议；第五章是对本文工作的总结，对实验
-    的不足进行了分析，以及对未来的展望。
+    本文针对A股市场所有股票，分别在日线和周线两个周期上选取两种特定的数据形态组合，选择合适
+    的特征，再利用支持向量机对未来多个交易周期的股票最低价平均值进行预测，并给出投资建议。本
+    文的主要内容如下：第一章介绍了研究背景及研究意义，介绍了有关股票预测的国内外研究现状；第
+    二章介绍了统计学习理论和支持向量机的理论基础；第三章详细介绍了模型的实现过程，包括选取指
+    标，标准化数据，选取核函数以及各种超参数寻优方法的说明，给出了评估实验效果的评价指标；第
+    四章呈现了本文的实验结果，并对得到的结果数据进行了分析和总结，从中找到数据的价值，最后给
+    出相应的投资决策建议；第五章是对本文工作的总结，对实验的不足进行了分析，以及对未来的展望。
 
-    本文经过严谨的实验研究后发现，支持向量机回归模型对特定数据形态组合的股票有不错的
-    预测效果，不仅体现在日线的短期预测上，其对中长期的周线数据（如$T=15\text{周}$）
-    也有预期之外的效果。最后分别根据4种情况的预测结果给出投资建议，以期获得超额收益。
+    本文经过严谨的实验研究后发现，支持向量机回归模型对特定数据形态组合的股票有不错的预测效果，
+    不仅体现在日线的短期预测上，其对中长期的周线数据（如$T=15\text{周}$）也有预期之外的效
+    果。最后分别根据一些特定情况的预测结果给出投资建议，以期获得超额收益。
 
 \end{abstract}
 
 \begin{enabstract}
     
-    The question of how to make excess gains in the stock market has 
-    always been a concern for investors, and many analytical prediction 
-    and stock-picking theories have been derived from this, such as the 
-    first basic analysis and technical analysis: the former holds that 
-    the stock price can be predicted by determining the intrinsic value 
-    of the stock; the latter predicts the stock price based on historical 
-    data of the stock. Then there's the multi-factor stock picking model: 
-    look for the factor most relevant to the stock's yield to carve the 
-    stock and make the selection. Unlike these approaches, this paper 
-    takes a quantified K-line approach and uses machine learning methods 
-    to make predictions after screening the K-line data.
+    How to make excess gains in the stock market has always been a concern 
+    for investors, many prediction and stock-picking theories have been 
+    derived from this, such as the fundamental analysis and technical 
+    analysis: the former holds that the stock price can be predicted by 
+    determining the intrinsic value of the stock; the latter based on 
+    historical K-line data of the stock. Quantitative multi-factor models 
+    have evolved rapidly in the last decade: finding the factors most 
+    relevant to stock yields to carve out stocks and make choices. Unlike 
+    these approaches, this paper takes a quantitative K-line method 
+    and uses machine learning methods to make predictions after screening 
+    the K-line data.
 
-    In this article, two specific combinations of data patterns are 
-    selected on the daily and weekly lines for all stocks in mainland 
-    China, and a support vector machine is used to predict the average 
-    of the stock lows over the next several trading cycles and to make 
-    investment recommendations. The main contents of this paper are as 
-    follows: Chapter 1 introduces the research background and research 
-    significance, and the current state of domestic and international 
-    research on stock prediction; Chapter 2 introduces the statistical 
-    learning theory and the theoretical basis of the support vector 
-    machine; Chapter 3 provides a detailed explanation of the model 
-    implementation process, including the selection of indicators, 
-    standardized data, the selection of kernel functions and the 
-    description of various hyperparameter optimization methods, and 
-    the selection of evaluation indicators to evaluate the experimental 
-    effect; Chapter 4 presents the experimental results of this paper, 
-    and analyzes and summarizes the resulting data to find the value, 
-    and finally gives the corresponding investment decision recommendations; 
-    Chapter 5 summarizes the work of this paper, analyzes the inadequacies 
-    of the experiment, and looks into the future.
+    In this article, two specific combinations of data patterns are selected 
+    for all the A-share market stocks in both daily and weekly cycles, the 
+    appropriate characteristics are selected, and then the support vector 
+    machine is used to predict the average of the stock lows over the next 
+    several trading cycles, and investment advice is given. The main contents 
+    of this paper are as follows: Chapter 1 introduces the research background 
+    and research significance, and introduces the current state of domestic and 
+    international research on stock prediction; Chapter 2 introduces the 
+    statistical learning theory and the theoretical basis of the support 
+    vector machine; Chapter 3 introduces the model implementation process in 
+    detail, including the selection of indicators, standardized data, the 
+    selection of kernel functions and the description of various hyperparameter 
+    optimization methods, and gives the evaluation indicators to evaluate the 
+    experimental effect; Chapter 4 presents the experimental results of this 
+    paper, and analyzes and summarizes the resulting data to find the value of 
+    the data, and finally gives the corresponding investment decision recommendations; 
+    Chapter 5 summarizes the work of this paper, analyzes the shortcomings of 
+    the experiment, and the future prospects.
 
     After rigorous experimental research, this paper finds that the support 
     vector machine regression model has good predictive effect on stocks 
@@ -72,6 +70,6 @@
     term prediction of the daily line, but also on the medium and long 
     term weekly data (e.g. T=15 weeks), which has the expected effect. 
     Finally, investment advice is given based on the projected results of 
-    each of the four scenarios, with a view to achieving excess returns.
+    each of specific scenarios, with a view to achieving excess returns.
 
 \end{enabstract}
